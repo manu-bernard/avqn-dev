@@ -1,0 +1,43 @@
+name: deploy (reusable)
+# Grammaire Coolify PARTAGÉE — deploy preview. Appelé par le ci.yml de chaque repo via
+# `uses: manu-bernard/avqn-dev/.github/workflows/deploy.yml@v1`. Ne contient QUE des
+# coordonnées (où déployer), aucune logique de typologie projet. Coolify ne build jamais :
+# on repointe IMAGE_TAG du service sur un sha immuable déjà construit+testé, et on déclenche.
+on:
+  workflow_call:
+    inputs:
+      service_uuid: { required: true, type: string, description: "UUID du service Coolify (preview)" }
+      health_url:   { required: true, type: string, description: "URL de health-check (200 attendu)" }
+      image_tag:    { required: true, type: string, description: "Tag immuable, ex. sha-<commit12>" }
+    secrets:
+      coolify_token: { required: true }
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ inputs.service_uuid }}
+      cancel-in-progress: false
+    env:
+      API: https://deploy.avqn.ch/api/v1
+      COOLIFY_TOKEN: ${{ secrets.coolify_token }}
+      SERVICE: ${{ inputs.service_uuid }}
+      TAG: ${{ inputs.image_tag }}
+      HEALTH: ${{ inputs.health_url }}
+    steps:
+      - name: Pointer l'image + déclencher Coolify (preview)
+        run: |
+          set -euo pipefail
+          curl -fsS -X PATCH "$API/services/$SERVICE/envs" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"key\":\"IMAGE_TAG\",\"value\":\"$TAG\"}"
+          curl -fsS -X POST "$API/deploy?uuid=$SERVICE" -H "Authorization: Bearer $COOLIFY_TOKEN"
+          echo "🚀 preview \`$SERVICE\` pointée sur \`$TAG\`" >> "$GITHUB_STEP_SUMMARY"
+      - name: Health-check preview
+        run: |
+          for i in $(seq 1 40); do
+            code=$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH" || true)
+            [ "$code" = "200" ] && { echo "✓ preview répond 200"; exit 0; }
+            echo "tentative $i/40 (code ${code:-?}) ; nouvel essai 10s"; sleep 10
+          done
+          echo "::error::preview ne répond pas 200 après ~7min"; exit 1

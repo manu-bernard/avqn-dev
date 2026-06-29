@@ -1,0 +1,45 @@
+name: promote (reusable)
+# Grammaire Coolify PARTAGÉE — promote prod. Appelé par le promote.yml de chaque repo via
+# `uses: manu-bernard/avqn-dev/.github/workflows/promote.yml@v1`. Lit le sha actuellement en
+# PREVIEW (source de vérité validée) et le reporte sur le service PROD. Coolify ne build jamais.
+on:
+  workflow_call:
+    inputs:
+      preview_uuid: { required: true, type: string, description: "UUID du service Coolify preview (source du sha)" }
+      prod_uuid:    { required: true, type: string, description: "UUID du service Coolify prod (cible)" }
+      health_url:   { required: true, type: string, description: "URL de health-check prod (200 attendu)" }
+    secrets:
+      coolify_token: { required: true }
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: promote-${{ inputs.prod_uuid }}
+      cancel-in-progress: false
+    env:
+      API: https://deploy.avqn.ch/api/v1
+      COOLIFY_TOKEN: ${{ secrets.coolify_token }}
+      PREVIEW: ${{ inputs.preview_uuid }}
+      PROD: ${{ inputs.prod_uuid }}
+      HEALTH: ${{ inputs.health_url }}
+    steps:
+      - name: Reporter le sha validé preview → prod + déclencher Coolify
+        run: |
+          set -euo pipefail
+          sha=$(curl -fsS -H "Authorization: Bearer $COOLIFY_TOKEN" "$API/services/$PREVIEW/envs" \
+            | jq -r '.[] | select(.key=="IMAGE_TAG") | .value' | head -1)
+          case "$sha" in sha-*) : ;; *) echo "::error::image preview absente/invalide ('$sha')"; exit 1 ;; esac
+          echo "📦 promotion de \`$sha\` (preview → prod \`$PROD\`)" >> "$GITHUB_STEP_SUMMARY"
+          curl -fsS -X PATCH "$API/services/$PROD/envs" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"key\":\"IMAGE_TAG\",\"value\":\"$sha\"}"
+          curl -fsS -X POST "$API/deploy?uuid=$PROD" -H "Authorization: Bearer $COOLIFY_TOKEN"
+      - name: Health-check prod
+        run: |
+          for i in $(seq 1 40); do
+            code=$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "$HEALTH" || true)
+            [ "$code" = "200" ] && { echo "✓ prod répond 200"; exit 0; }
+            echo "tentative $i/40 (code ${code:-?}) ; nouvel essai 10s"; sleep 10
+          done
+          echo "::error::prod ne répond pas 200 après ~7min"; exit 1
