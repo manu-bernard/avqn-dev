@@ -1,14 +1,17 @@
 name: deploy (reusable)
 # Grammaire Coolify PARTAGÉE — deploy preview. Appelé par le ci.yml de chaque repo via
-# `uses: manu-bernard/avqn-dev/.github/workflows/deploy.yml@v1`. Ne contient QUE des
-# coordonnées (où déployer), aucune logique de typologie projet. Coolify ne build jamais :
-# on repointe IMAGE_TAG du service sur un sha immuable déjà construit+testé, et on déclenche.
+# `uses: manu-bernard/avqn-dev/.github/workflows/deploy.yml@v1`. Coolify ne build jamais :
+# on repointe l'image du service/application sur un sha immuable déjà construit+testé, et on
+# déclenche. Deux modes Coolify (bornés, pas de logique de typologie projet) :
+#   - service (compose, défaut) : PATCH /services/{uuid}/envs  → IMAGE_TAG
+#   - application (docker image) : PATCH /applications/{uuid}  → docker_registry_image_tag
 on:
   workflow_call:
     inputs:
-      service_uuid: { required: true, type: string, description: "UUID du service Coolify (preview)" }
-      health_url:   { required: true, type: string, description: "URL de health-check (200 attendu)" }
-      image_tag:    { required: true, type: string, description: "Tag immuable, ex. sha-<commit12>" }
+      uuid:       { required: true,  type: string, description: "UUID Coolify du service/application (preview)" }
+      health_url: { required: true,  type: string, description: "URL de health-check (200 attendu)" }
+      image_tag:  { required: true,  type: string, description: "Tag immuable, ex. sha-<commit12>" }
+      mode:       { required: false, type: string, default: service, description: "service | application" }
     secrets:
       coolify_token: { required: true }
 
@@ -16,23 +19,32 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     concurrency:
-      group: deploy-${{ inputs.service_uuid }}
+      group: deploy-${{ inputs.uuid }}
       cancel-in-progress: false
     env:
       API: https://deploy.avqn.ch/api/v1
       COOLIFY_TOKEN: ${{ secrets.coolify_token }}
-      SERVICE: ${{ inputs.service_uuid }}
+      MODE: ${{ inputs.mode }}
+      UUID: ${{ inputs.uuid }}
       TAG: ${{ inputs.image_tag }}
       HEALTH: ${{ inputs.health_url }}
     steps:
       - name: Pointer l'image + déclencher Coolify (preview)
         run: |
           set -euo pipefail
-          curl -fsS -X PATCH "$API/services/$SERVICE/envs" \
-            -H "Authorization: Bearer $COOLIFY_TOKEN" -H "Content-Type: application/json" \
-            -d "{\"key\":\"IMAGE_TAG\",\"value\":\"$TAG\"}"
-          curl -fsS -X POST "$API/deploy?uuid=$SERVICE" -H "Authorization: Bearer $COOLIFY_TOKEN"
-          echo "🚀 preview \`$SERVICE\` pointée sur \`$TAG\`" >> "$GITHUB_STEP_SUMMARY"
+          case "$MODE" in
+            service)
+              curl -fsS -X PATCH "$API/services/$UUID/envs" \
+                -H "Authorization: Bearer $COOLIFY_TOKEN" -H "Content-Type: application/json" \
+                -d "{\"key\":\"IMAGE_TAG\",\"value\":\"$TAG\"}" ;;
+            application)
+              curl -fsS -X PATCH "$API/applications/$UUID" \
+                -H "Authorization: Bearer $COOLIFY_TOKEN" -H "Content-Type: application/json" \
+                -d "{\"docker_registry_image_tag\":\"$TAG\"}" ;;
+            *) echo "::error::mode inconnu '$MODE' (service|application)"; exit 1 ;;
+          esac
+          curl -fsS -X POST "$API/deploy?uuid=$UUID" -H "Authorization: Bearer $COOLIFY_TOKEN"
+          echo "🚀 preview \`$UUID\` ($MODE) pointée sur \`$TAG\`" >> "$GITHUB_STEP_SUMMARY"
       - name: Health-check preview
         run: |
           for i in $(seq 1 40); do
