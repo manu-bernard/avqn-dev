@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "avqn-dev",
+  "owner": { "name": "AVQN", "email": "manu.avqn@gmail.com" },
+  "metadata": { "description": "Backbone du dev continu AVQN", "version": "1.0.0" },
+  "plugins": [
+    {
+      "name": "avqn-dev",
+      "source": "./",
+      "description": "Méthodo de dev continu AVQN (brainstorm-issue, dev, apercu + superpowers).",
+      "version": "1.0.0",
+      "strict": true
+    }
+  ]
+}
