@@ -30,7 +30,7 @@ Sans humain. La spec **est** une issue `label=ready` — tu ne brainstormes jama
 - **Gate d'entrée** : seulement les issues ouvertes `label=ready`. Pas de `ready` = ignore.
 - **Sélection** : la plus ancienne issue `ready`, sans `pull_request`, sans `in-progress`, sans PR liée. **Une** par repo par run.
 - **Claim** : pose `in-progress` sur l'issue.
-- **Brancher** : `git checkout -b dev/issue-<n>-<slug> origin/main`. Lis le `CLAUDE.md` du repo (contrat).
+- **Brancher** : `git fetch origin && git checkout -b dev/issue-<n>-<slug> origin/main`. Lis le `CLAUDE.md` du repo (contrat).
 - **→ Déroule le cœur** (spec = corps de l'issue). Issue ambiguë/trop grosse → ne devine pas : commente, retire `in-progress`, repo suivant.
 
 ## Amorce interactive (humain au clavier)
@@ -39,7 +39,7 @@ Avec l'humain, dans un seul repo. La spec naît de la **conversation**.
 
 - **Cadrage** : `superpowers:brainstorming` en live (questions, options, design validé). Respecte sa discipline : pas de code avant accord sur le design.
 - **Issue facultative** : tu peux ouvrir une issue pour tracer (et la `Closes` à la PR), mais ce n'est pas requis — l'humain est l'aval, en continu. Pas de gate `ready`.
-- **Brancher** : `git checkout -b <type>/<slug> origin/main`. Lis le `CLAUDE.md` du repo (contrat).
+- **Brancher** : `git fetch origin && git checkout -b <type>/<slug> origin/main`. Lis le `CLAUDE.md` du repo (contrat).
 - **→ Déroule le cœur** (spec = le design validé en conversation). Tu vas **jusqu'à la preview** ; tu t'arrêtes avant la prod (promote = geste humain).
 
 ## Garde-fous
