@@ -6,7 +6,7 @@
 
 - **Deux gestes humains, le reste autonome.** (1) approuver une issue (label `ready`) ; (2) promouvoir une preview en prod. Tout ce qui est entre les deux est automatique.
 - **L'issue GitHub est la colonne vertébrale.** Le brainstorm s'y dépose ; le label `ready` est l'aval ; le dev la consomme.
-- **Le commun est partagé sans être cloné.** La méthodo (skills) et la mécanique de déploiement (reusable workflows) vivent une seule fois dans un backbone ; elles se distribuent par agrégation multi-source (skills) et par `uses:` (workflows). Les repos d'app restent propres.
+- **Le commun est partagé sans être cloné.** La méthodo (skills) et la mécanique de déploiement (reusable workflows) vivent une seule fois dans un backbone. Les skills se distribuent via un **plugin user-scope** (`avqn-dev`, marketplace auto-hébergée) ; les workflows par `uses:`. Les repos d'app restent propres.
 - **Hétérogénéité dans les repos, simplicité dans le partagé.** Le build/test (Astro/Next/nginx/docker…) vit dans chaque repo. Le partagé ne contient que ce qui est *réellement* identique partout.
 - **Qualité avant la PR.** Rien ne part en PR qui ne soit testé ET, pour le front, visuellement validé — en local, jamais en preview.
 
@@ -87,6 +87,8 @@ Mécanique commune (identique partout, donc factorisée) : image immuable `sha-<
 - **deploy** = repointer le service *preview* sur le sha mergé.
 - **promote** = lire le sha en *preview* (vérité validée) → repointer le service *prod*.
 
+`mode:` est passé explicitement par chaque repo. Multi-process → `service` (PATCH `IMAGE_TAG`) ; mono-process → `application` (PATCH `docker_registry_image_tag`).
+
 ## 7. Reusable workflows (la factorisation)
 
 Un workflow partagé **fin**, qui ne contient que la grammaire Coolify (réellement identique). La typologie de projet (build/test) n'y est jamais — elle reste dans le `ci.yml` de chaque repo. Entrées = **coordonnées** (où déployer), pas options de comportement.
@@ -106,22 +108,22 @@ Config requise (une fois) : `avqn-dev` étant privé, autoriser ses workflows à
 
 Un repo, deux rôles, **jamais cloné en dev** :
 
-1. **Skills partagées** dans `.claude/skills/` : superpowers vendorisées (TDD, systematic-debugging, verification, code-review…) + les wrappers `brainstorm-issue`, `dev`, `apercu` (l'œil visuel Playwright). Distribuées par **agrégation multi-source** : `avqn-dev` est une source de la routine de dev → ses skills se chargent dans chaque session, quel que soit le repo d'app travaillé. Les repos d'app ne portent **aucune** méthodo.
+1. **Plugin user-scope** (`skills/` + `.claude-plugin/{plugin.json,marketplace.json}`) : superpowers vendorisées (TDD, systematic-debugging, verification, code-review…) + les wrappers `brainstorm-issue`, `dev`, `apercu` (l'œil visuel Playwright). Installé via la marketplace auto-hébergée (`manu-bernard/avqn-dev`) en scope user → **auto-enabled dans chaque session de chaque repo**, interactif comme routine. Les repos d'app ne portent **aucune** méthodo.
 2. **Reusable workflows** `deploy.yml` / `promote.yml` (§7), référencés par `uses:`.
 
 ## 9. Recette de l'environnement cloud
 
 Prouvée (voir mémoire `recette-routine-cloud-superpowers-playwright`).
 
-- **Skills** : committées dans `.claude/skills/` (du backbone pour le partagé). S'agrègent en multi-source. Rien à installer.
-- **Permissions** : `.claude/settings.json` → `{"permissions":{"defaultMode":"bypassPermissions"}}`. Aucun prompt.
-- **MCP Playwright** : seul élément non agrégé en multi-source → enregistré par le **script de config de l'env** (une ligne) : `claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --headless --isolated --no-sandbox --browser chromium --executable-path /opt/pw-browsers/chromium`. Chromium est déjà dans l'image. `file://` bloqué → servir en `localhost`.
+- **Plugin avqn-dev** : installé via `env/avqn-dev-env-setup.sh` (marketplace add + `claude plugin install avqn-dev@avqn-dev --scope user`). Scope user = auto-enabled sans aucune config par repo. Repo privé → l'env doit être authentifié GitHub.
+- **Permissions** : `.claude/settings.json` dans les repos d'app → `{"permissions":{"defaultMode":"bypassPermissions"}}`. Aucun prompt.
+- **MCP Playwright** : enregistré par le même script de config : `claude mcp add playwright --scope user -- npx -y @playwright/mcp@latest --headless --isolated --no-sandbox --browser chromium --executable-path /opt/pw-browsers/chromium`. Chromium est déjà dans l'image. `file://` bloqué → servir en `localhost`.
 
 ## 10. La routine de dev (cloud, horaire)
 
-- **Sources** : `avqn-dev` (skills) + tous les repos d'app.
-- **Env** : `avqn-dev` avec le script de config 1-ligne (MCP Playwright).
-- **Prompt minimal** (~3 lignes) : « déroule `/dev` sur les repos d'app sources ». La procédure vit dans le skill `/dev` du backbone, plus dans le prompt.
+- **Sources** : les repos d'app uniquement (clones de travail). `avqn-dev` n'est **pas** une source — ses skills sont disponibles via le plugin user-scope installé par le script de config.
+- **Env** : `avqn-dev` avec `env/avqn-dev-env-setup.sh` (plugin avqn-dev + MCP Playwright).
+- **Prompt minimal** (~3 lignes) : « déroule `/dev` sur les repos d'app sources ». La procédure vit dans le skill `/dev` du plugin, pas dans le prompt.
 
 ## 11. Legacy à tuer
 

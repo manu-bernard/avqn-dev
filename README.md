@@ -2,7 +2,7 @@
 
 Repo **jamais cloné en dev**, deux rôles :
 
-1. **Skills partagées** (`.claude/skills/`) — la méthodologie de dev, distribuée par **agrégation multi-source** (ce repo est une source de la routine de dev ; ses skills se chargent dans chaque session, quel que soit le repo d'app travaillé) :
+1. **Plugin user-scope** (`skills/` + `.claude-plugin/`) — la méthodologie de dev, distribuée via la marketplace auto-hébergée `manu-bernard/avqn-dev`. Installé en scope user → **auto-enabled dans chaque session de chaque repo** (interactif et routine), sans aucune config par repo :
    - `brainstorm-issue` — phase 1, interactif : brainstorme une issue → spec d'intention dans l'issue.
    - `dev` — phase 2, autonome : issue `ready` → TDD → qualité visuelle → PR → CI → FF merge → deploy preview.
    - `apercu` — boucle qualité visuelle locale (Playwright) avant la PR.
@@ -20,7 +20,7 @@ Repo **jamais cloné en dev**, deux rôles :
 
 ## Pièces
 - `projects.txt` — registre des repos d'app du dev continu.
-- `env/avqn-dev-env-setup.sh` — script de config de l'environnement cloud (enregistre le MCP Playwright).
+- `env/avqn-dev-env-setup.sh` — script de config de l'environnement cloud (installe le plugin avqn-dev en scope user + enregistre le MCP Playwright).
 - `docs/conception.md` — la conception complète (état cible).
 
 Conception et recette détaillées : voir `docs/conception.md`.
