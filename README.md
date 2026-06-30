@@ -3,8 +3,8 @@
 Repo **jamais cloné en dev**, deux rôles :
 
 1. **Plugin user-scope** (`skills/` + `.claude-plugin/`) — la méthodologie de dev, distribuée via la marketplace auto-hébergée `manu-bernard/avqn-dev`. Installé en scope user → **auto-enabled dans chaque session de chaque repo** (interactif et routine), sans aucune config par repo :
-   - `brainstorm-issue` — phase 1, interactif : brainstorme une issue → spec d'intention dans l'issue.
-   - `dev` — phase 2, autonome : issue `ready` → TDD → qualité visuelle → PR → CI → FF merge → deploy preview.
+   - `brainstorm-issue` — interactif : brainstorme une idée → spec d'intention dans l'issue, pour préparer une issue `ready` que la routine prendra.
+   - `dev` — un cœur commun (plan → TDD → qualité visuelle → gate → PR → CI → FF merge `main` → deploy preview) avec deux amorces : **interactive** (conversation + brainstorm live → preview, issue facultative) et **routine** (issue `label=ready` → preview, autonome).
    - `apercu` — boucle qualité visuelle locale (Playwright) avant la PR.
    - superpowers vendorisées (TDD, debugging, plans, review, verification…).
 

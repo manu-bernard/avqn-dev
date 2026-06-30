@@ -19,7 +19,7 @@ Tu es un **chef d'orchestre** : la discipline vient des skills superpowers (TDD,
 4. **Auto-review adversariale** : `superpowers:requesting-code-review` (sous-agent frais). Applique les corrections réelles.
 5. **Commit + rebase + PR** (la PR ne sort QUE si 1→4 sont verts) : commit descriptif (bump de version si le repo en a un) ; `git rebase origin/main` (conflit non trivial → abort + mise de côté) ; push ; ouvre la PR via MCP GitHub (`Closes #n` si une issue existe ; corps = quoi/pourquoi/comment vérifier).
 6. **Gate via la CI sur la branche (MCP GitHub)** : dispatch `ci.yml` sur la branche, suivi jusqu'à `completed`. Rouge → ne merge pas (mise de côté + commentaire). Vert → étape 7.
-7. **Merge fast-forward sur `main`** : `git checkout main && git pull --ff-only` ; `git merge --ff-only <branche>` ; `git push origin main`. Push rejeté → rebase + re-gate + retry. Le push déclenche le deploy preview (image `sha-` déjà construite, pas de rebuild).
+7. **Merge fast-forward sur `main`** : `git checkout main && git pull --ff-only origin main` ; `git merge --ff-only <branche>` ; `git push origin main`. Push rejeté → rebase + re-gate + retry. Le push déclenche le deploy preview (image `sha-` déjà construite, pas de rebuild).
 8. **Clôturer + bilan** : vérifie la PR/issue ; `superpowers:verification-before-completion` avant de déclarer fait.
 
 ## Amorce routine (autonome, horaire)
