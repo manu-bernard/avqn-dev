@@ -5,62 +5,71 @@
 ## 1. Principes
 
 - **Deux gestes humains, le reste autonome.** (1) approuver une issue (label `ready`) ; (2) promouvoir une preview en prod. Tout ce qui est entre les deux est automatique.
-- **L'issue GitHub est la colonne vertébrale.** Le brainstorm s'y dépose ; le label `ready` est l'aval ; le dev la consomme.
+- **L'issue GitHub est la colonne vertébrale du dev autonome.** En routine, le brainstorm s'y dépose, le label `ready` est l'aval, le dev la consomme. En interactif, le travail peut partir d'une simple conversation (issue facultative).
+- **Deux modes, un cœur.** Le même cœur d'implémentation (jusqu'à la preview) est partagé par le mode **interactif** (l'humain au clavier) et le mode **routine** (autonome) ; ils ne diffèrent que par leur amorce.
 - **Le commun est partagé sans être cloné.** La méthodo (skills) et la mécanique de déploiement (reusable workflows) vivent une seule fois dans un backbone. Les skills se distribuent via un **plugin user-scope** (`avqn-dev`, marketplace auto-hébergée) ; les workflows par `uses:`. Les repos d'app restent propres.
 - **Hétérogénéité dans les repos, simplicité dans le partagé.** Le build/test (Astro/Next/nginx/docker…) vit dans chaque repo. Le partagé ne contient que ce qui est *réellement* identique partout.
 - **Qualité avant la PR.** Rien ne part en PR qui ne soit testé ET, pour le front, visuellement validé — en local, jamais en preview.
 
-## 2. Cycle de vie d'une issue
+## 2. Deux modes, un cœur
+
+Le même **cœur d'implémentation** est porté par deux amorces. Les deux s'arrêtent à la **preview** ; la prod reste le geste humain 2.
 
 ```
-issue brute / non validée
-        │  PHASE 1 — /brainstorm-issue   (interactif, avec l'humain)
-        ▼
-issue enrichie d'une SPEC D'INTENTION (le quoi/pourquoi)
-        │  l'humain pose le label `ready`            ← GATE 1
-        ▼
-issue `ready`
-        │  PHASE 2 — /dev                (autonome, horaire)
-        ▼
-PR mergée en FF sur main → deploy preview automatique
-        │  l'humain review la preview → promote      ← GATE 2
-        ▼
-prod
+INTERACTIF (humain au clavier)            ROUTINE (autonome, horaire)
+conversation                              issue `label=ready`          ← GATE 1
+   │ brainstorm live (superpowers)           │  (l'humain a posé `ready`)
+   ▼                                          ▼
+   └────────────────►  CŒUR  ◄────────────────┘
+   plan → TDD → apercu → gate → auto-review → PR → CI → FF merge `main`
+                            │
+                            ▼
+                deploy preview automatique
+                            │  l'humain review la preview → promote   ← GATE 2
+                            ▼
+                           prod
 ```
 
-## 3. Phase 1 — `/brainstorm-issue` (interactif)
+L'issue est **facultative** en interactif (l'humain est l'aval, en continu) et **obligatoire** en routine (elle EST la spec). Une voie interactive distincte — `/brainstorm-issue` — sert à *préparer* une issue `ready` que la routine prendra plus tard.
 
-Wrapper mince autour de `superpowers:brainstorming`. Différence unique : la destination du design.
+## 3. Préparer une issue `ready` — `/brainstorm-issue` (interactif)
+
+Pour alimenter la routine en travail validé. Wrapper mince autour de `superpowers:brainstorming` ; seule différence : la destination du design.
 
 - Prend une issue brute (ou une idée → crée l'issue).
 - Déroule le brainstorm superpowers avec l'humain (exploration, options, design).
 - À l'étape « écrire le design », **écrit la spec dans le corps de l'issue** (pas dans `docs/specs`) — une **spec d'intention** : le *quoi* et le *pourquoi*, pas le plan d'implémentation.
-- **S'arrête là.** Ne passe pas à l'implémentation. Le label `ready`, posé par l'humain (async), est l'aval.
+- **S'arrête là** (ne code pas). Le label `ready`, posé par l'humain (async), est l'aval ; la routine implémente ensuite.
 
-> Évolution future possible (hors périmètre) : un second skill qui produit aussi le *plan* dans l'issue, et un `/dev` qui s'adapte selon que le plan est présent ou non. Pour l'instant : issue = spec d'intention, `/dev` planifie lui-même.
+> À ne pas confondre avec le **mode interactif de `/dev`** (§4), où l'humain reste au clavier et va jusqu'à la preview dans la même session.
 
-## 4. Phase 2 — `/dev` (autonome, horaire)
+## 4. Le cœur + les deux amorces — `/dev`
 
-Par repo du registre, la plus ancienne issue ouverte `label=ready` sans PR liée ni `in-progress`. Une par repo par run. Wrapper d'orchestration autour de superpowers, **sans re-brainstormer** (l'issue `ready` EST la spec).
+Wrapper d'orchestration autour de superpowers. Un **cœur** commun, deux **amorces** :
+
+- **Amorce interactive** (humain au clavier) : part d'une **conversation**, brainstorme en live (`superpowers:brainstorming`), puis déroule le cœur jusqu'à la preview. Issue facultative ; pas de gate `ready` (l'humain est l'aval, en continu).
+- **Amorce routine** (autonome, horaire) : par repo, la plus ancienne issue ouverte `label=ready` sans PR liée ni `in-progress` — une par repo par run. **Sans re-brainstormer** (l'issue `ready` EST la spec).
+
+Le **cœur** (identique aux deux) :
 
 ```
-1. claim (in-progress) ; branche depuis origin/main
-2. writing-plans à partir de l'issue, puis TDD (superpowers:test-driven-development)
+1. branche depuis `origin/main` (en routine : claim `in-progress` sur l'issue d'abord)
+2. writing-plans à partir de la **spec** (issue `ready` en routine ; design validé en conversation en interactif), puis TDD (superpowers:test-driven-development)
 3. BOUCLE QUALITÉ VISUELLE LOCALE  — si le repo a une UI ET que la tâche touche le front :
      - build + lance l'app en local (comme pour le e2e)
      - captures Playwright (MCP) aux breakpoints déclarés
-     - JUGE le rendu contre : la description de l'issue + la charte du projet
+     - JUGE le rendu contre : la spec + la charte du projet
      - pas satisfait → améliore le code → re-teste
      - recommence jusqu'à un rendu de qualité, plafond d'itérations (garde-fou)
-     - au plafond sans convergence → s'arrête, commente l'issue, met de côté
+     - au plafond sans convergence → s'arrête, met de côté (commente l'issue en routine ; questionne l'humain en interactif)
 4. gate complète locale (lint/format/typecheck/test/e2e/build) — exactement ce que la CI rejoue
 5. auto-review adversariale (sous-agent à contexte frais) → corrige
-6. commit + rebase sur origin/main + PR (Closes #n)   ← la PR ne sort QUE si 2→5 sont verts
+6. commit + rebase sur origin/main + PR (`Closes #n` si une issue existe)   ← la PR ne sort QUE si 2→5 sont verts
 7. gate CI sur la branche (dispatch ci.yml via MCP GitHub, suivi jusqu'à completed)
 8. vert → FF merge sur main → le ci.yml du repo déploie la PREVIEW (sans rebuild)
 ```
 
-Garde-fous : seulement `ready` ; une issue par repo par run ; jamais promo prod ni Coolify direct ; jamais merge sur CI rouge ; rebase avant FF ; gate locale complète avant de pousser. Issue floue / conflit / CI rouge → mise de côté + commentaire + retire `in-progress`.
+Garde-fous communs : jamais promo prod ni Coolify direct ; jamais merge sur CI rouge ; rebase avant FF ; gate locale complète + qualité visuelle avant de pousser. Conflit / CI rouge → mise de côté. **Routine seulement** : uniquement `ready` ; une issue par repo par run ; ambiguïté → commente l'issue + retire `in-progress`.
 
 La boucle visuelle est **une couche au-dessus du e2e** : l'app sait déjà se lancer pour ses tests. Repos sans front, ou tâches qui ne touchent pas le front → la boucle est sautée.
 
