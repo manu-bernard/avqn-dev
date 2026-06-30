@@ -3,10 +3,10 @@
 Ce repo porte la **méthodologie partagée** (plugin user-scope) et la **mécanique de déploiement** (reusable workflows). Il n'est **jamais cloné en dev** : ses skills se distribuent via le plugin, ses workflows par `uses:`.
 
 ## Ce qui vit ici
-- `skills/` + `.claude-plugin/` — plugin `avqn-dev` distribué par la marketplace auto-hébergée `manu-bernard/avqn-dev`. Installé en scope user → auto-enabled dans chaque session, sans config par repo. Contient `brainstorm-issue` (prépare une issue `ready`), `dev` (cœur commun + deux amorces : interactive, routine), `apercu` (qualité visuelle) + superpowers vendorisées. **Les wrappers sont les points d'entrée** ; ils orchestrent superpowers.
+- `skills/` + `.claude-plugin/` — plugin `avqn-dev` distribué par la marketplace unique `avqn` (`manu-bernard/avqn-plugins`). Installé en scope user → auto-enabled dans chaque session, sans config par repo. Contient `brainstorm-issue` (prépare une issue `ready`), `dev` (cœur commun + deux amorces : interactive, routine), `apercu` (qualité visuelle) + superpowers vendorisées. **Les wrappers sont les points d'entrée** ; ils orchestrent superpowers.
 - `.github/workflows/deploy.yml` + `promote.yml` — grammaire Coolify partagée, **fine** : seulement des coordonnées (`service_uuid`, `health_url`, `image_tag`), zéro logique de typologie de projet.
 - `projects.txt` — registre des repos d'app.
-- `env/avqn-dev-env-setup.sh` — script de config de l'env cloud : installe le plugin avqn-dev (scope user) + enregistre le MCP Playwright.
+- `env/avqn-dev-env-setup.sh` — script de config de l'env cloud : installe le plugin avqn-dev + l'outillage Playwright (avqn-tooling) depuis la marketplace unique `avqn` (fallback tarball si les sources ne sont pas déclarées).
 - `docs/conception.md` — l'état cible complet.
 
 ## Règles d'édition
