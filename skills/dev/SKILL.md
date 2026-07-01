@@ -1,11 +1,11 @@
 ---
 name: dev
-description: Développe une tâche jusqu'à la PREVIEW (jamais la prod), via un cœur commun — plan → TDD → qualité visuelle locale (apercu) → gate locale → auto-review → PR → gate CI sur la branche → FF merge main (déclenche le deploy preview). Deux amorces : ROUTINE (issue label=ready, autonome) ou INTERACTIF (conversation + brainstorming live avec l'humain, issue facultative). Orchestrateur des skills superpowers.
+description: Développe une tâche jusqu'au FF merge main (jamais de promote ni d'appel Coolify), via un cœur commun — plan → TDD → qualité visuelle locale (apercu) → gate locale → auto-review → PR → gate CI sur la branche → FF merge main (déclenche le deploy du repo : preview en double-palier, prod en mono-palier). Deux amorces : ROUTINE (issue label=ready, autonome) ou INTERACTIF (conversation + brainstorming live avec l'humain, issue facultative). Orchestrateur des skills superpowers.
 ---
 
 # Dev
 
-Tu portes du travail **jusqu'à la preview** : tu le **codes en TDD**, tu le rends **beau et testé en local**, puis tu le **merges en FF** sur `main` quand la CI est verte — ce qui déclenche seul le **deploy preview** (le `ci.yml` du repo). Tu ne déploies **rien** toi-même, **jamais** la prod (le promote prod est un geste humain).
+Tu portes du travail **jusqu'au FF merge `main`** : tu le **codes en TDD**, tu le rends **beau et testé en local**, puis tu le **merges en FF** sur `main` quand la CI est verte — ce qui déclenche seul le **deploy du repo** (son `ci.yml`) : la **preview** en double-palier, la **prod** en mono-palier (cf. le contrat du `CLAUDE.md` du repo). Tu ne déploies **rien** toi-même et tu ne **promote jamais** : tu merges `main`, le repo déploie.
 
 Tu es un **chef d'orchestre** : la discipline vient des skills superpowers (TDD, debugging, review, verification).
 
@@ -19,7 +19,7 @@ Tu es un **chef d'orchestre** : la discipline vient des skills superpowers (TDD,
 4. **Auto-review adversariale** : `superpowers:requesting-code-review` (sous-agent frais). Applique les corrections réelles.
 5. **Commit + rebase + PR** (la PR ne sort QUE si 1→4 sont verts) : commit descriptif (bump de version si le repo en a un) ; `git rebase origin/main` (conflit non trivial → abort + mise de côté) ; push ; ouvre la PR via MCP GitHub (`Closes #n` si une issue existe ; corps = quoi/pourquoi/comment vérifier).
 6. **Gate via la CI sur la branche (MCP GitHub)** : dispatch `ci.yml` sur la branche, suivi jusqu'à `completed`. Rouge → ne merge pas (mise de côté + commentaire). Vert → étape 7.
-7. **Merge fast-forward sur `main`** : `git checkout main && git pull --ff-only origin main` ; `git merge --ff-only <branche>` ; `git push origin main`. Push rejeté → rebase + re-gate + retry. Le push déclenche le deploy preview (image `sha-` déjà construite, pas de rebuild).
+7. **Merge fast-forward sur `main`** : `git checkout main && git pull --ff-only origin main` ; `git merge --ff-only <branche>` ; `git push origin main`. Push rejeté → rebase + re-gate + retry. Le push déclenche le deploy du repo — **preview** en double-palier, **prod** en mono-palier (image `sha-` déjà construite, pas de rebuild).
 8. **Clôturer + bilan** : vérifie la PR/issue ; `superpowers:verification-before-completion` avant de déclarer fait.
 
 ## Amorce routine (autonome, horaire)
@@ -31,6 +31,7 @@ Sans humain. La spec **est** une issue `label=ready` — tu ne brainstormes jama
 - **Sélection** : la plus ancienne issue `ready`, sans `pull_request`, sans `in-progress`, sans PR liée. **Une** par repo par run.
 - **Claim** : pose `in-progress` sur l'issue.
 - **Brancher** : `git fetch origin && git checkout -b dev/issue-<n>-<slug> origin/main`. Lis le `CLAUDE.md` du repo (contrat).
+- **Palier assumé** : sur un repo mono-palier, le FF merge `main` déploie **la prod** sans supervision. C'est assumé (repos jeunes) ; le contrôle est le registre `projects.txt` — un repo n'y est présent que si ce déploiement autonome est accepté.
 - **→ Déroule le cœur** (spec = corps de l'issue). Issue ambiguë/trop grosse → ne devine pas : commente, retire `in-progress`, repo suivant.
 
 ## Amorce interactive (humain au clavier)
@@ -40,7 +41,7 @@ Avec l'humain, dans un seul repo. La spec naît de la **conversation**.
 - **Cadrage** : `superpowers:brainstorming` en live (questions, options, design validé). Respecte sa discipline : pas de code avant accord sur le design.
 - **Issue facultative** : tu peux ouvrir une issue pour tracer (et la `Closes` à la PR), mais ce n'est pas requis — l'humain est l'aval, en continu. Pas de gate `ready`.
 - **Brancher** : `git fetch origin && git checkout -b <type>/<slug> origin/main`. Lis le `CLAUDE.md` du repo (contrat).
-- **→ Déroule le cœur** (spec = le design validé en conversation). Tu vas **jusqu'à la preview** ; tu t'arrêtes avant la prod (promote = geste humain).
+- **→ Déroule le cœur** (spec = le design validé en conversation). Tu vas **jusqu'au FF merge `main`** ; tu ne promote jamais. En double-palier, le promote prod reste un geste humain ; en mono-palier, le merge déploie déjà la prod.
 
 ## Garde-fous
 - **Changement minimal** ; **jamais deviner** (ambiguïté/conflit → mise de côté + commentaire en routine ; question à l'humain en interactif).
