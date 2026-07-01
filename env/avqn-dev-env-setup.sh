@@ -35,5 +35,15 @@ claude mcp add playwright --scope user -- \
   npx -y @playwright/mcp@latest "${PLAYWRIGHT_ARGS[@]}" \
   && echo "playwright OK" || echo "playwright KO"
 
+# 3) Fluidité : pré-autoriser le serveur MCP Playwright au SCOPE USER (une place → tous les repos,
+#    toutes les sessions). Plus de pop-up de permission pour browser_navigate/take_screenshot/etc.
+#    `mcp__playwright` = tout le serveur. Merge NON destructif via jq (préserve enabledPlugins…).
+SETTINGS="$HOME/.claude/settings.json"
+mkdir -p "$(dirname "$SETTINGS")"
+[ -s "$SETTINGS" ] || echo '{}' > "$SETTINGS"
+tmp=$(mktemp)
+jq '.permissions.allow = ((.permissions.allow // []) + ["mcp__playwright"] | unique)' "$SETTINGS" > "$tmp" \
+  && mv "$tmp" "$SETTINGS" && echo "permission playwright OK" || { rm -f "$tmp"; echo "permission playwright KO"; }
+
 claude mcp list || true
 echo "== fin setup avqn =="
