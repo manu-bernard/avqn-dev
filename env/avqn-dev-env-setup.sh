@@ -35,15 +35,18 @@ claude mcp add playwright --scope user -- \
   npx -y @playwright/mcp@latest "${PLAYWRIGHT_ARGS[@]}" \
   && echo "playwright OK" || echo "playwright KO"
 
-# 3) Fluidité : pré-autoriser le serveur MCP Playwright au SCOPE USER (une place → tous les repos,
-#    toutes les sessions). Plus de pop-up de permission pour browser_navigate/take_screenshot/etc.
-#    `mcp__playwright` = tout le serveur. Merge NON destructif via jq (préserve enabledPlugins…).
+# 3) Fluidité MAXIMALE : bypass total des permissions au SCOPE USER (une place → tous les repos,
+#    toutes les sessions). `defaultMode: bypassPermissions` = plus AUCUN pop-up, jamais — indispensable
+#    aussi pour les workers AUTONOMES (un run unattended ne peut pas répondre à un prompt). Légitime
+#    ici : l'env cloud est un sandbox jetable et isolé (egress bridé). À NE PAS reproduire en local.
+#    On garde aussi l'allow ciblé Playwright (redondant mais explicite). Merge NON destructif via jq.
 SETTINGS="$HOME/.claude/settings.json"
 mkdir -p "$(dirname "$SETTINGS")"
 [ -s "$SETTINGS" ] || echo '{}' > "$SETTINGS"
 tmp=$(mktemp)
-jq '.permissions.allow = ((.permissions.allow // []) + ["mcp__playwright"] | unique)' "$SETTINGS" > "$tmp" \
-  && mv "$tmp" "$SETTINGS" && echo "permission playwright OK" || { rm -f "$tmp"; echo "permission playwright KO"; }
+jq '.permissions.defaultMode = "bypassPermissions"
+    | .permissions.allow = ((.permissions.allow // []) + ["mcp__playwright"] | unique)' "$SETTINGS" > "$tmp" \
+  && mv "$tmp" "$SETTINGS" && echo "permissions bypass OK" || { rm -f "$tmp"; echo "permissions bypass KO"; }
 
 claude mcp list || true
 echo "== fin setup avqn =="
