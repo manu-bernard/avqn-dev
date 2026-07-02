@@ -125,12 +125,12 @@ Un repo commence souvent **mono** (droit en prod) et passe **double** quand il g
 
 Un workflow partagé **fin**, qui ne contient que la grammaire Coolify (réellement identique). La typologie de projet (build/test) n'y est jamais — elle reste dans le `ci.yml` de chaque repo. Entrées = **coordonnées** (où déployer), pas options de comportement.
 
-- `avqn-dev/.github/workflows/deploy.yml@v1` — inputs : `uuid`, `health_url`, `image_tag`, `mode` (`service`|`application`, défaut `service`) ; secret : `coolify_token`. → repointe le service/application cible sur le sha, déclenche, health-check.
-- `avqn-dev/.github/workflows/promote.yml@v1` — inputs : `preview_uuid`, `prod_uuid`, `health_url`, `mode` ; secret : `coolify_token`. → lit le sha preview, repointe prod, health-check.
+- `a-v-q-n/avqn-dev/.github/workflows/deploy.yml@main` — inputs : `uuid`, `health_url`, `image_tag`, `mode` (`service`|`application`, défaut `service`) ; secret : `coolify_token`. → repointe le service/application cible sur le sha, déclenche, health-check.
+- `a-v-q-n/avqn-dev/.github/workflows/promote.yml@main` — inputs : `preview_uuid`, `prod_uuid`, `health_url`, `mode` ; secret : `coolify_token`. → lit le sha preview, repointe prod, health-check.
 
 Dans chaque repo :
-- `ci.yml` : `prep` + `build` + `test` (hétérogènes, locaux) + un job final `deploy: uses: manu-bernard/avqn-dev/.github/workflows/deploy.yml@v1` avec ses coordonnées (`uuid` = la cible du push `main` : prod en mono-palier, preview en double-palier).
-- `promote.yml` : une ligne `uses: …/promote.yml@v1` avec ses coordonnées — **double-palier seulement**.
+- `ci.yml` : `prep` + `build` + `test` (hétérogènes, locaux) + un job final `deploy: uses: a-v-q-n/avqn-dev/.github/workflows/deploy.yml@main` avec ses coordonnées (`uuid` = la cible du push `main` : prod en mono-palier, preview en double-palier).
+- `promote.yml` : une ligne `uses: …/promote.yml@main` avec ses coordonnées — **double-palier seulement**.
 
 Le reusable workflow est **résolu par GitHub au CI, jamais cloné** — donc rien à ajouter aux environnements/routines. **Brancher un nouveau projet** = écrire son `ci.yml` (build/test) + le job `deploy` (coordonnées) ; en double-palier, ajouter `promote.yml`. Zéro modif du partagé.
 

@@ -16,7 +16,7 @@
 #   `marketplace add <url>` ajoute bien le catalogue en HTTPS, mais installer un plugin à source `./x`
 #   exige un clone local des fichiers → échoue aussi. Le jour où on voudra une install 100 % « propre »
 #   comme Playwright (une commande, zéro fichier), on publiera la méthodo en PACKAGE npm. En attendant,
-#   le tarball est la voie assumée. (La marketplace git `manu-bernard/avqn-dev` sert claude.ai et
+#   le tarball est la voie assumée. (La marketplace git `a-v-q-n/avqn-dev` sert claude.ai et
 #   Claude Code en usage interactif, où `git clone` n'est pas bridé — pas cet env.)
 set -uo pipefail
 exec >>/tmp/avqn-env-setup.log 2>&1
@@ -26,7 +26,7 @@ PLAYWRIGHT_ARGS=(--headless --isolated --no-sandbox --browser chromium --executa
 
 # 1) Méthodo avqn-dev — tarball du repo PUBLIC (sans token, sans source), marketplace en chemin local.
 rm -rf /root/.avqn && mkdir -p /root/.avqn
-curl -fsSL https://github.com/manu-bernard/avqn-dev/archive/refs/heads/main.tar.gz | tar xz -C /root/.avqn
+curl -fsSL https://github.com/a-v-q-n/avqn-dev/archive/refs/heads/main.tar.gz | tar xz -C /root/.avqn
 claude plugin marketplace add /root/.avqn/avqn-dev-main \
   && claude plugin install avqn-dev@avqn-dev --scope user \
   && echo "méthodo avqn-dev OK" || echo "méthodo avqn-dev KO"

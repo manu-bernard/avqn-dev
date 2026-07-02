@@ -1,6 +1,6 @@
 # Repos d'app du dev continu (un par ligne, owner/repo). Aussi déclarés en SOURCES de la routine dev.
-manu-bernard/avqn-os
-manu-bernard/avqn-infra
-manu-bernard/contentos
-manu-bernard/product-site-avqn
-manu-bernard/product-barometre-ia
+a-v-q-n/avqn-os
+a-v-q-n/avqn-infra
+a-v-q-n/contentos
+a-v-q-n/product-site-avqn
+a-v-q-n/product-barometre-ia

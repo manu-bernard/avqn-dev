@@ -3,5 +3,5 @@
   "version": "1.0.0",
   "description": "Backbone du dev continu AVQN : skills brainstorm-issue / dev / apercu + superpowers vendorisées. Deux modes (interactif, routine) partageant un cœur d'implémentation jusqu'au FF merge main.",
   "author": { "name": "AVQN", "email": "manu.avqn@gmail.com" },
-  "homepage": "https://github.com/manu-bernard/avqn-dev"
+  "homepage": "https://github.com/a-v-q-n/avqn-dev"
 }
