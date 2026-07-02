@@ -16,7 +16,8 @@
 #   `marketplace add <url>` ajoute bien le catalogue en HTTPS, mais installer un plugin à source `./x`
 #   exige un clone local des fichiers → échoue aussi. Le jour où on voudra une install 100 % « propre »
 #   comme Playwright (une commande, zéro fichier), on publiera la méthodo en PACKAGE npm. En attendant,
-#   le tarball est la voie assumée. (Le magasin git `avqn`/avqn-plugins sert claude.ai, pas cet env.)
+#   le tarball est la voie assumée. (La marketplace git `manu-bernard/avqn-dev` sert claude.ai et
+#   Claude Code en usage interactif, où `git clone` n'est pas bridé — pas cet env.)
 set -uo pipefail
 exec >>/tmp/avqn-env-setup.log 2>&1
 echo "== setup avqn @ $(date -u +%FT%TZ) =="

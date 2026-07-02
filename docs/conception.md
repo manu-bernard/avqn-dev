@@ -164,7 +164,3 @@ Prouvée (voir mémoire `recette-routine-cloud-superpowers-playwright`).
 - Routine **« Multi-source probe »** (debug).
 - Repo `avqn-deploy` : pièces utiles migrées vers `avqn-dev`, le reste archivé/supprimé (`projects.txt`, modèle recette centralisé).
 - Reliquats `avqn-workspace`.
-
-## 12. Dette assumée & améliorations
-
-- **Distribution de la méthodo : tarball + double marketplace.** L'env cloud installe le plugin `avqn-dev` par tarball curl (§9), parce que le proxy sandbox bride `git clone` aux seules sources déclarées ; en parallèle, la marketplace git `avqn` (`avqn-plugins`) sert claude.ai. Deux canaux pour une même méthodo. **Amélioration prévue (prochaine refonte)** : publier la méthodo en **package npm** → une install « sans fichiers » (une commande, comme Playwright), un seul canal, plus de tarball ni de marketplace locale. Non prioritaire tant que la recette actuelle tient.

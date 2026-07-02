@@ -3,10 +3,10 @@
 Ce repo porte la **méthodologie partagée** (plugin user-scope) et la **mécanique de déploiement** (reusable workflows). Il n'est **jamais cloné en dev** : ses skills se distribuent via le plugin, ses workflows par `uses:`.
 
 ## Ce qui vit ici
-- `skills/` + `.claude-plugin/` — plugin `avqn-dev` distribué par la marketplace unique `avqn` (`manu-bernard/avqn-plugins`). Installé en scope user → auto-enabled dans chaque session, sans config par repo. Contient `brainstorm-issue` (prépare une issue `ready`), `dev` (cœur commun + deux amorces : interactive, routine), `apercu` (qualité visuelle) + superpowers vendorisées. **Les wrappers sont les points d'entrée** ; ils orchestrent superpowers.
+- `skills/` + `.claude-plugin/` — plugin `avqn-dev`, marketplace unique de la méthodo (`/plugin marketplace add manu-bernard/avqn-dev`). Installé en scope user → auto-enabled dans chaque session, sans config par repo. Contient `brainstorm-issue` (prépare une issue `ready`), `dev` (cœur commun + deux amorces : interactive, routine), `apercu` (qualité visuelle) + superpowers vendorisées. **Les wrappers sont les points d'entrée** ; ils orchestrent superpowers.
 - `.github/workflows/deploy.yml` + `promote.yml` — grammaire Coolify partagée, **fine** : seulement des coordonnées (`uuid`, `health_url`, `image_tag`, `mode`), zéro logique de typologie de projet.
 - `projects.txt` — registre des repos d'app.
-- `env/avqn-dev-env-setup.sh` — script de config de l'env cloud, **sans aucune source déclarée** (le proxy sandbox bride `git clone`, pas curl/npm) : la méthodo `avqn-dev` s'installe par **tarball** du repo public (marketplace en chemin local) et Playwright par **`claude mcp add`** (serveur MCP npm, pas un plugin). Le magasin git `avqn` (avqn-plugins) sert **claude.ai**, pas cet env. Install 100 % « sans fichiers » (comme Playwright) = à terme un **package npm** de la méthodo.
+- `env/avqn-dev-env-setup.sh` — script de config de l'env cloud, **sans aucune source déclarée** (le proxy sandbox bride `git clone`, pas curl/npm) : la méthodo `avqn-dev` s'installe par **tarball** du repo public (marketplace en chemin local) et Playwright par **`claude mcp add`** (serveur MCP npm, pas un plugin). C'est **le canal env cloud** — l'ajout direct de la marketplace `manu-bernard/avqn-dev` sert claude.ai et Claude Code en usage interactif, où `git clone` n'est pas bridé. Install 100 % « sans fichiers » (comme Playwright) = à terme un **package npm** de la méthodo.
 - `docs/conception.md` — l'état cible complet.
 
 ## Règles d'édition
